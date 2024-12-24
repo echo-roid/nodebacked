@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Capture and Upload Photo</title>
+</head>
+<body>
+    <h1>Auto Capture Photo</h1>
+    <script>
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        // Access the device camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+
+                // Capture photo every 10 seconds
+                setInterval(() => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0);
+                    canvas.toBlob((blob) => {
+                        const formData = new FormData();
+                        formData.append('photo', blob, 'photo.jpg');
+
+                        // Send the photo to the server
+                        fetch('http://192.168.0.187:3000/upload', { // Replace with your server URL
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.text())
+                        .then(data => {
+                            console.log(data); // Log success message
+                        })
+                        .catch(error => {
+                            console.error('Error uploading photo:', error);
+                        });
+                    }, 'image/jpeg');
+                }, 10000); // 10 seconds
+            })
+            .catch((err) => {
+                console.error("Error accessing camera: ", err);
+            });
+    </script>
+</body>
+</html>
