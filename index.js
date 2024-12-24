@@ -10,7 +10,7 @@ const app = express();
 // Enable CORS for your frontend
 app.use(
   cors({
-    origin: ["https://nodebacked.vercel.app"], // Replace with your actual frontend URL
+    origin: ["https://nodebacked.vercel.app/upload"], // Replace with your actual frontend URL
   })
 );
 
