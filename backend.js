@@ -6,14 +6,14 @@ const cors = require("cors");
 
 // Create Express app
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ["https://nodebacked.vercel.app/"], // Update with your frontend URL
+}));
 
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
-});
-// Directory to save photos
+// Directory to save photos (only for development)
 const photosDir = path.join(__dirname, "photos");
 if (!fs.existsSync(photosDir)) {
   fs.mkdirSync(photosDir);
@@ -22,7 +22,7 @@ if (!fs.existsSync(photosDir)) {
 // Set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, photosDir);
+    cb(null, photosDir); // Save to local folder (not suitable for production)
   },
   filename: (req, file, cb) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -32,6 +32,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Serve the main HTML file
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "./public/index.html"));
+});
+
 // Route to handle photo uploads
 app.post("/upload", upload.single("photo"), (req, res) => {
   if (!req.file) {
@@ -40,8 +45,14 @@ app.post("/upload", upload.single("photo"), (req, res) => {
   res.status(200).json({ message: "Photo uploaded successfully", file: req.file.filename });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong!" });
+});
+
 // Start the server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
