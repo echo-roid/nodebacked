@@ -35,13 +35,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Serve the main HTML file
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
-  res.send("Hello, World!"); 
- });
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "./public/index.html"));
+//   res.send("Hello, World!"); 
+//  });
 
 // Route to handle photo uploads
-app.post("/upload", (req, res) => {
+app.post("/upload", upload.single("photo"), (req, res) => {
   res.send("Hello, file!"); 
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
