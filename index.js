@@ -3,48 +3,60 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
-const os = require("os");
 
+// Create Express app
 const app = express();
+app.use(cors({
+  origin: ["https://nodebacked.vercel.app/upload"], // Update with your frontend URL
+  methods: ["GET", "POST"]
+}));
 
-// Enable CORS for your frontend
-app.use(
-  cors({
-    origin: ["https://nodebacked.vercel.app/upload"], // Replace with your actual frontend URL
-  })
-);
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
-// Use a temporary directory for file uploads
-const tempDir = os.tmpdir();
+// Directory to save photos (only for development)
+const photosDir = path.join(__dirname, "photos");
+if (!fs.existsSync(photosDir)) {
+  fs.mkdirSync(photosDir);
+}
 
-// Set up Multer for file uploads
+// Set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, tempDir); // Save uploaded files to the temporary directory
+    cb(null, photosDir); // Save to local folder (not suitable for production)
   },
   filename: (req, file, cb) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    cb(null, `photo-${timestamp}${path.extname(file.originalname)}`);
+    cb(null, `photo-${timestamp}.jpg`); // Corrected: use backticks for string interpolation
   },
 });
 
+
 const upload = multer({ storage });
 
-// Test endpoint
+// Serve the main HTML file
 app.get("/", (req, res) => {
-  res.send("Welcome to the Photo Upload Service!");
-});
+  res.sendFile(path.join(__dirname, "./public/index.html"));
+  res.send("Hello, World!"); 
+ });
 
-// Photo upload endpoint
+// Route to handle photo uploads
 app.get("/upload", upload.single("photo"), (req, res) => {
-  res.send("Welcome2 to the Photo Upload Service!");
+  res.send("Hello, file!"); 
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded." });
+  }
+  res.status(200).json({ message: "Photo uploaded successfully", file: req.file.filename });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: "Internal Server Error" });
+  res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Export the app for Vercel
-module.exports = app;
+// Start the server
+const PORT =  3000;
+app.listen(PORT, () => {
+  console.log("Server is running on port ${PORT}");
+});  

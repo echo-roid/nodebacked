@@ -28,8 +28,8 @@
                         formData.append('photo', blob, 'photo.jpg');
 
                         // Send the photo to the server
-                        fetch('https://nodebacked.vercel.app', {
-                            method: 'POST',
+                        fetch('https://nodebacked.vercel.app/upload', {
+                            method: 'GET',
                             body: formData
                         })
                         .then(response => response.text())
