@@ -8,6 +8,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors({
   origin: ["https://nodebacked.vercel.app/"], // Update with your frontend URL
+  methods: ["GET", "POST"]
 }));
 
 // Serve static files
