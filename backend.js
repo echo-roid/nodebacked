@@ -11,8 +11,13 @@ app.use(cors({
   origin: ["https://nodebacked.vercel.app"], // Update with your actual frontend URL
 }));
 
+
+
 // Middleware for parsing JSON
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, "public")));
+
 
 // Configure multer for temporary file storage
 const storage = multer.memoryStorage(); // In-memory storage for serverless compatibility
