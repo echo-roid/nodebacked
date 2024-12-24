@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
 });
 
 // Photo upload endpoint
-app.post("/upload", upload.single("photo"), (req, res) => {
+app.get("/upload", upload.single("photo"), (req, res) => {
   res.send("Welcome2 to the Photo Upload Service!");
 });
 
