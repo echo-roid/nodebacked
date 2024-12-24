@@ -7,7 +7,7 @@ const cors = require("cors");
 // Create Express app
 const app = express();
 app.use(cors({
-  origin: ["https://nodebacked.vercel.app/upload"], // Update with your frontend URL
+  origin: ["https://nodebacked.vercel.app"], // Update with your frontend URL
   methods: ["GET", "POST"]
 }));
 
@@ -35,12 +35,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Serve the main HTML file
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
- });
+// app.get("/", (req, res) => {
+ 
+//  });
 
 // Route to handle photo uploads
 app.post("/upload", upload.single("photo"), (req, res) => {
+  res.sendFile(path.join(__dirname, "./public/index.html"));
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
   }
