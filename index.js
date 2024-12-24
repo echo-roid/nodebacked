@@ -41,7 +41,7 @@ app.get("/", (req, res) => {
  });
 
 // Route to handle photo uploads
-app.get("/upload", upload.single("photo"), (req, res) => {
+app.post("/upload", upload.single("photo"), (req, res) => {
   res.send("Hello, file!"); 
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
