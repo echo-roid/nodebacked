@@ -35,13 +35,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Serve the main HTML file
-// app.get("/", (req, res) => {
- 
-// });
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "./public/index.html"));
+ });
 
 // Route to handle photo uploads
-app.post("/", upload.single("photo"), (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
+app.post("/upload", upload.single("photo"), (req, res) => {
+ 
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
   }
@@ -55,7 +55,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT =  3000;
 app.listen(PORT, () => {
   console.log("Server is running on port ${PORT}");
 });  
