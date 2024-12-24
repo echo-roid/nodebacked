@@ -11,38 +11,31 @@ app.use(cors({
   methods: ["GET", "POST"]
 }));
 
-// Serve static files
+// Serve static files (this will serve the files in the public directory)
 app.use(express.static(path.join(__dirname, "public")));
-
-// Directory to save photos (only for development)
-const photosDir = path.join(__dirname, "photos");
-if (!fs.existsSync(photosDir)) {
-  fs.mkdirSync(photosDir);
-}
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, photosDir); // Save to local folder (not suitable for production)
+    // Use the /tmp directory on Vercel for file storage
+    cb(null, "/tmp");
   },
   filename: (req, file, cb) => {
+    // Use a unique filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    cb(null, `photo-${timestamp}.jpg`); // Corrected: use backticks for string interpolation
-  },
+    cb(null, `photo-${timestamp}.jpg`);
+  }
 });
-
 
 const upload = multer({ storage });
 
 // Serve the main HTML file
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "./public/index.html"));
-  res.send("Hello, World!"); 
- });
+});
 
-// Route to handle photo uploads
-app.post("/upload", upload.single("photo"), (req, res) => {
-  
+// Route to handle photo uploads (POST request)
+app.post("/api/upload", upload.single("photo"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
   }
@@ -55,8 +48,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Start the server
-const PORT =  3000;
-app.listen(PORT, () => {
-  console.log("Server is running on port ${PORT}");
-});  
+// Export the handler for Vercel
+module.exports = app;
