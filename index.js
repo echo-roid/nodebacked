@@ -10,7 +10,7 @@ const app = express();
 // Enable CORS for your frontend
 app.use(
   cors({
-    origin: ["https://nodebacked.vercel.app"], // Replace with your actual frontend URL
+    origin: ["https://nodebacked.vercel.app/upload"], // Replace with your actual frontend URL
   })
 );
 
@@ -31,23 +31,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Test endpoint
-// app.get("/", (req, res) => {
-  
-// });
+app.get("/", (req, res) => {
+  res.send("Welcome to the Photo Upload Service!");
+});
 
 // Photo upload endpoint
-app.post("/", upload.single("photo"), (req, res) => {
-
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded." });
-  }
-
-  // Response with file information
-  res.status(200).json({
-    message: "Photo uploaded successfully",
-    file: req.file.filename,
-    path: req.file.path,
-  });
+app.post("/upload", upload.single("photo"), (req, res) => {
+  res.send("Welcome2 to the Photo Upload Service!");
 });
 
 // Error handling middleware
