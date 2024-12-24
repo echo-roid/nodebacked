@@ -1,40 +1,26 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 const cors = require("cors");
+require("dotenv").config();
 
-// Create Express app
 const app = express();
+
+// Enable CORS for your frontend URL
 app.use(cors({
-  origin: ["https://nodebacked.vercel.app/"], // Update with your frontend URL
+  origin: ["https://nodebacked.vercel.app"], // Update with your actual frontend URL
 }));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+// Middleware for parsing JSON
+app.use(express.json());
 
-// Directory to save photos (only for development)
-const photosDir = path.join(__dirname, "photos");
-if (!fs.existsSync(photosDir)) {
-  fs.mkdirSync(photosDir);
-}
-
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, photosDir); // Save to local folder (not suitable for production)
-  },
-  filename: (req, file, cb) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    cb(null, `photo-${timestamp}.jpg`);
-  },
-});
-
+// Configure multer for temporary file storage
+const storage = multer.memoryStorage(); // In-memory storage for serverless compatibility
 const upload = multer({ storage });
 
-// Serve the main HTML file
+// Route for health check
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
+  res.status(200).json({ message: "Server is running on Vercel!" });
 });
 
 // Route to handle photo uploads
@@ -42,7 +28,16 @@ app.post("/upload", upload.single("photo"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
   }
-  res.status(200).json({ message: "Photo uploaded successfully", file: req.file.filename });
+
+  // Example response with uploaded file metadata
+  res.status(200).json({
+    message: "Photo uploaded successfully",
+    file: {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+    },
+  });
 });
 
 // Error handling middleware
@@ -51,8 +46,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+module.exports = app;
