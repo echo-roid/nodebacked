@@ -7,7 +7,7 @@ const cors = require("cors");
 // Create Express app
 const app = express();
 app.use(cors({
-  origin: ["https://nodebacked.vercel.app/"], // Update with your frontend URL
+  origin: ["https://nodebacked.vercel.app"], // Update with your frontend URL
   methods: ["GET", "POST"]
 }));
 
