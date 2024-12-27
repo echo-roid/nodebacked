@@ -1,70 +1,50 @@
-
 const express = require("express");
 const multer = require("multer");
-const cors = require("cors");
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getStorage } = require('firebase-admin/storage');
+const axios = require("axios");
+const FormData = require("form-data");
 
-// Create Express app
 const app = express();
 
-// Enable CORS for your frontend URL
+
+
 app.use(cors({
   origin: ["https://nodebacked.vercel.app"], // Update with your frontend URL
   methods: ["GET", "POST"]
 }));
 
-
-
-// Initialize Firebase Admin SDK
-const serviceAccount = require('../up.json'); // Update with your service account key path
-
-initializeApp({
-  credential: cert(serviceAccount),
-  storageBucket: 'upload-52b46' // Replace PROJECT_ID with your actual project ID
-});
-
-// Get a reference to the storage bucket
-const bucket = getStorage().bucket();
-
-// Set up multer for file uploads
-const storage = multer.memoryStorage(); // Use memory storage to handle files in memory
+// Configure multer for in-memory storage
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// API endpoint to handle file uploads
-app.post("/api/upload", upload.single("photo"), async (req, res) => {
+app.post("/upload", upload.single("photo"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded." });
   }
 
-  // Create a unique filename
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `photo-${timestamp}.jpg`;
+  try {
+    // Ngrok URL pointing to your local system
+    const localServerUrl = "https://baa0-150-129-181-172.ngrok-free.app/upload";
 
-  // Create a file object for Firebase Storage
-  const file = bucket.file(filename);
+    // Forward the file using FormData
+    const formData = new FormData();
+    formData.append("photo", req.file.buffer, req.file.originalname);
 
-  // Create a write stream to upload the file
-  const stream = file.createWriteStream({
-    metadata: {
-      contentType: req.file.mimetype,
-    },
-  });
+    // POST request to the local server
+    const response = await axios.post(localServerUrl, formData, {
+      headers: formData.getHeaders(),
+    });
 
-  // Handle stream events
-  stream.on('error', (err) => {
-    console.error(err);
-    return res.status(500).json({ message: "Error uploading file." });
-  });
-
-  stream.on('finish', () => {
-    // File uploaded successfully
-    res.status(200).json({ message: "Photo uploaded successfully", file: filename });
-  });
-
-  // Pipe the file buffer to the stream
-  stream.end(req.file.buffer);
+    res.status(200).json({
+      message: "Photo uploaded and forwarded to local system.",
+      localResponse: response.data,
+    });
+  } catch (error) {
+    console.error("Error forwarding to local system:", error.message);
+    res.status(500).json({ message: "Failed to forward the photo to local system." });
+  }
 });
 
-// Export the app to Vercel
-module.exports = app;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Vercel server running on port ${PORT}`);
+});
